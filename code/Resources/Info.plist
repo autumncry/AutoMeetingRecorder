@@ -5,9 +5,10 @@
 <key>CFBundleIdentifier</key><string>local.MeetingScribe</string>
 <key>CFBundleName</key><string>MeetingScribe</string>
 <key>CFBundleDisplayName</key><string>MeetingScribe</string>
+<key>CFBundleIconFile</key><string>AppIcon.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
-<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>0.1.1</string>
+<key>CFBundleVersion</key><string>2</string>
 <key>LSMinimumSystemVersion</key><string>14.2</string>
 <key>NSPrincipalClass</key><string>NSApplication</string>
 <key>NSMicrophoneUsageDescription</key><string>补充记录你在会议中的发言。跟随飞书模式仅在确认开麦时保留本地声音。</string>

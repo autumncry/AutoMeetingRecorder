@@ -9,11 +9,13 @@ if /usr/bin/pgrep -x MeetingScribe >/dev/null 2>&1; then
   echo 'MeetingScribe is running. Save/stop any recording and quit it before rebuilding.' >&2
   exit 1
 fi
+"$CODE_DIR/script/build_icon.sh"
 swift build
 BIN_DIR="$(swift build --show-bin-path)"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/MeetingScribe" "$APP/Contents/MacOS/MeetingScribe"
 cp "$CODE_DIR/Resources/Info.plist" "$APP/Contents/Info.plist"
+cp "$CODE_DIR/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 chmod +x "$APP/Contents/MacOS/MeetingScribe"
 /usr/bin/codesign --force --sign - --identifier local.MeetingScribe --entitlements "$CODE_DIR/Resources/MeetingScribe.entitlements" "$APP"
 /usr/bin/codesign --verify --strict "$APP"
