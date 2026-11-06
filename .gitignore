@@ -1,0 +1,4 @@
+code/.build*/
+Builds/
+Validation/
+.DS_Store
