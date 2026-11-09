@@ -1,12 +1,16 @@
-# MeetingScribe · 会记
+# AutoMeetingRecorder（AMR）
 
 个人使用的 macOS 会议录音、转写与纪要工具。原生 SwiftUI，音频与笔记保存在本机，ASR/LLM 使用你自己的接口。
 
+设计语言：北电数智蓝（品牌蓝 `#0075FF`，深蓝 `#005FD2`，蓝灰中性色），支持系统深浅模式。项目使用 MIT 协议；仓库是否公开由 GitHub 的可见性设置决定，当前要求为私有。
+
 ## 打开
 
-双击项目 `Builds/MeetingScribe.app`。可以复制到“应用程序”文件夹。本机构建使用 ad-hoc 签名，不需要付费 Apple 开发者账号，也没有做面向公众发行的公证。重新构建后 macOS 可能要求重新授权。
+双击项目 `Builds/AutoMeetingRecorder.app`。可以复制到“应用程序”文件夹。本机构建使用 ad-hoc 签名，不需要付费 Apple 开发者账号，也没有做面向公众发行的公证。重新构建后 macOS 可能要求重新授权。
 
 要求 macOS 14.2 或更新。本次产物为 Apple Silicon（arm64）。
+
+从旧版 MeetingScribe 更新：在确认停止录音并退出后，运行 `python3 code/script/install_app.py`，会备份旧 app、安装 `/Applications/AutoMeetingRecorder.app` 并刷新该 app 的系统注册。旧录音不移动、不删除；首次启动复制旧设置，保留模型配置 ID 和钥匙串引用。内部 bundle ID 保持不变以延续系统身份。
 
 ## 首次配置
 
@@ -15,6 +19,7 @@
 3. 设置 → 总结模型：填写兼容的聊天接口、模型名和 Key，修改中文 Markdown 总结指令。可先测试连接。
 4. 设置 → 录音：授予系统音频、麦克风、辅助功能权限，然后开启飞书自动检测。首次启动检测默认关闭，避免未经配置开始录音。
 5. 可选择外部 Markdown 阅读器所用的文件夹作为资料库。切换资料库不会移动已有文件。
+6. 可在设置 → 录音中点击“发送 AMR 测试通知”，检查通知显示的名称与图标。
 
 ## 使用
 
@@ -44,10 +49,14 @@
 ```sh
 cd code
 swift test
-./script/build_and_run.sh --build  # Builds/MeetingScribe.app
+./script/build_and_run.sh --build  # Builds/AutoMeetingRecorder.app
 ./script/build_and_run.sh         # 构建并打开
 ```
 
 构建脚本在 app 仍运行时会拒绝覆盖，请先保存录音并退出。支持 `--qa`（项目内独立测试资料库）、`--verify`、`--debug`、`--logs`。文档在 `docs/`，验证日志在 `Validation/`，构建产物在 `Builds/`。
 
 编译与合成测试通过不能替代设备验收。尚需你提供 H800 接口配置并授予系统权限，验证一次真实飞书会议，以及实际 PLAUD 分享链接。
+
+## 许可证
+
+MIT，见 [LICENSE](LICENSE)。录音、个人设置、密钥、构建缓存和安装备份不属于源码提交内容。

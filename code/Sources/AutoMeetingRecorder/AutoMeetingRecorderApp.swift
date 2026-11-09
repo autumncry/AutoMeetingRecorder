@@ -2,13 +2,13 @@ import SwiftUI
 import UserNotifications
 import MeetingCore
 
-@main struct MeetingScribeApp: App {
+@main struct AutoMeetingRecorderApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var model = AppModel()
     var body: some Scene {
-        WindowGroup("MeetingScribe · 会记", id: "library") {
+        WindowGroup(Brand.name, id: "library") {
             LibraryView().environmentObject(model).onAppear { AppDelegate.model = model }
-                .frame(minWidth: 850, minHeight: 580).tint(.teal)
+                .frame(minWidth: 850, minHeight: 580).tint(Brand.accent).foregroundStyle(Brand.text)
         }
         .defaultSize(width: 1120, height: 760)
         .commands {
@@ -20,12 +20,12 @@ import MeetingCore
                 }.keyboardShortcut("r", modifiers: [.command, .shift])
             }
         }
-        Settings { SettingsView().environmentObject(model).frame(width: 680, height: 590).tint(.teal) }
+        Settings { SettingsView().environmentObject(model).frame(width: 680, height: 590).tint(Brand.accent) }
         MenuBarExtra {
             MenuContent().environmentObject(model)
         } label: {
-            Image(systemName: model.activeRecording == nil ? "waveform" : "record.circle.fill")
-                .symbolRenderingMode(.palette).foregroundStyle(model.activeRecording == nil ? Color.primary : Color.red)
+            if model.activeRecording == nil { Image(nsImage: Brand.menuIcon) }
+            else { Image(systemName: "record.circle.fill").symbolRenderingMode(.palette).foregroundStyle(Color.red) }
         }
     }
 }
@@ -33,7 +33,7 @@ struct MenuContent: View {
     @EnvironmentObject var model: AppModel
     @Environment(\.openWindow) var openWindow
     var body: some View {
-        Text(model.recordingLabel)
+        Text("AMR · " + model.recordingLabel)
         if model.activeRecording != nil { Text(LocalStore.timestamp(model.elapsed)) }
         if model.activeRecording?.status == .pending {
             Button("保留并继续录音") { model.confirmRecording() }
@@ -47,13 +47,14 @@ struct MenuContent: View {
         Button("打开资料库") { openWindow(id: "library"); NSApp.activate(ignoringOtherApps: true) }
         SettingsLink { Text("设置…") }
         Divider()
-        Button("退出 MeetingScribe") { NSApp.terminate(nil) }.keyboardShortcut("q")
+        Button("退出 AutoMeetingRecorder") { NSApp.terminate(nil) }.keyboardShortcut("q")
     }
 }
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     @MainActor static var model: AppModel?
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+        if let icon = Brand.icon { NSApp.applicationIconImage = icon }
         UNUserNotificationCenter.current().delegate = self
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }

@@ -43,14 +43,19 @@ import UserNotifications
     init() {
         let args = ProcessInfo.processInfo.arguments
         let qaPath = args.firstIndex(of: "--library").flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
-        let config = qaPath.map { URL(fileURLWithPath: $0).appendingPathComponent(".settings.json") } ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/MeetingScribe/settings.json")
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let config = qaPath.map { URL(fileURLWithPath: $0).appendingPathComponent(".settings.json") } ?? SettingsMigration.currentURL(home: home)
         settingsURL = config
-        var loaded = (try? Data(contentsOf: config)).flatMap { try? JSONDecoder().decode(AppSettings.self, from: $0) } ?? AppSettings()
+        var settingsLoadError: String?
+        var loaded: AppSettings
+        do { loaded = try SettingsMigration.load(current: config, legacy: qaPath == nil ? SettingsMigration.legacyURL(home: home) : nil) }
+        catch { loaded = AppSettings(); settingsLoadError = "设置读取失败，原文件已保留：\(error.localizedDescription)" }
         if let qaPath { loaded.libraryPath = qaPath; loaded.automaticDetection = false }
         settings = loaded
+        if let settingsLoadError { errorMessage = settingsLoadError }
         do { store = try LocalStore(root: URL(fileURLWithPath: loaded.libraryPath)) }
         catch {
-            let fallback = FileManager.default.temporaryDirectory.appendingPathComponent("MeetingScribe-Recovery")
+            let fallback = FileManager.default.temporaryDirectory.appendingPathComponent("AutoMeetingRecorder-Recovery")
             store = try! LocalStore(root: fallback)
             settings.libraryPath = fallback.path
             errorMessage = "无法打开资料库，暂时使用恢复目录：\(error.localizedDescription)"
@@ -157,6 +162,15 @@ import UserNotifications
         if pending { c.categoryIdentifier = "MEETING_PENDING" }
         if let id { c.userInfo = ["session": id.uuidString] }
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id?.uuidString ?? UUID().uuidString, content: c, trigger: nil))
+    }
+    func sendTestNotification() async {
+        await registerNotifications()
+        let permissions = await UNUserNotificationCenter.current().notificationSettings()
+        guard permissions.authorizationStatus == .authorized || permissions.authorizationStatus == .provisional else {
+            errorMessage = "通知尚未授权。请在系统设置 → 通知 → AutoMeetingRecorder 中允许通知后重试。"
+            return
+        }
+        notify("AMR 已准备就绪", body: "AutoMeetingRecorder 的应用图标与通知已连接。这是一条本地测试通知。")
     }
     func notificationAction(_ action: String, sessionID: String?) {
         guard sessionID == activeRecording?.id.uuidString, activeRecording?.status == .pending else { return }

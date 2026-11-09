@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 public enum KeychainStore {
-    private static let service = "local.MeetingScribe.api"
+    private static let service = SettingsMigration.keychainService
     public static func read(_ id: UUID) -> String? {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: id.uuidString, kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
         var result: CFTypeRef?

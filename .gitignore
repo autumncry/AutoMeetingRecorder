@@ -2,3 +2,11 @@ code/.build*/
 Builds/
 Validation/
 .DS_Store
+Backups/
+.env
+.env.*
+*.key
+*.p12
+*.mobileprovision
+__pycache__/
+*.py[cod]

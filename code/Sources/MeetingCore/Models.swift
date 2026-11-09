@@ -39,7 +39,7 @@ public enum MicrophoneMode: String, Codable, CaseIterable, Identifiable {
 }
 public enum MuteState: String, Codable { case muted, unmuted, unknown }
 public struct AppSettings: Codable, Equatable {
-    public var libraryPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Documents/MeetingScribe").path
+    public var libraryPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Documents/AutoMeetingRecorder").path
     public var automaticDetection = false
     public var autoTranscribe = true
     public var autoSummarize = true

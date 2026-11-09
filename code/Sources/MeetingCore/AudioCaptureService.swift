@@ -108,7 +108,7 @@ private final class AudioCaptureSession: @unchecked Sendable {
     let id: UUID
     let directory: URL
     private let origin = mach_absolute_time()
-    private let queue = DispatchQueue(label: "MeetingScribe.audio.files", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "AutoMeetingRecorder.audio.files", qos: .userInitiated)
     private let slots = DispatchSemaphore(value: 32)
     private let stateLock = NSLock()
     private var accepting = true
@@ -423,7 +423,7 @@ private final class NativeAudioCapture: AudioCaptureHardware {
             let status = AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, UInt32(MemoryLayout<pid_t>.size), &pid, &size, &ownProcess)
             let excluded = status == noErr && ownProcess != 0 ? [ownProcess] : []
             let description = CATapDescription(stereoGlobalTapButExcludeProcesses: excluded)
-            description.name = "MeetingScribe system audio"
+            description.name = "AutoMeetingRecorder system audio"
             description.uuid = UUID()
             description.isPrivate = true
             description.muteBehavior = .unmuted
@@ -439,8 +439,8 @@ private final class NativeAudioCapture: AudioCaptureHardware {
                 throw audioError("System tap did not supply supported Float32 audio.")
             }
             let configuration: [String: Any] = [
-                kAudioAggregateDeviceNameKey: "MeetingScribe private capture",
-                kAudioAggregateDeviceUIDKey: "MeetingScribe.\(UUID())",
+                kAudioAggregateDeviceNameKey: "AutoMeetingRecorder private capture",
+                kAudioAggregateDeviceUIDKey: "AutoMeetingRecorder.\(UUID())",
                 kAudioAggregateDeviceIsPrivateKey: true,
                 // Do not wait synchronously for some other app to begin playing sound.
                 kAudioAggregateDeviceTapAutoStartKey: false,

@@ -1,4 +1,10 @@
-# MeetingScribe icon
+# AutoMeetingRecorder（AMR）icon
+
+2026-11-09 update: retain the waveform/note composition and transparent macOS silhouette; recolor from teal to BEDI brand blue #0075FF / #005FD2 with navy #0E2241 transcript lines and a white page. Edited with the built-in image generation tool, exported through sips/iconutil. No company logo or text is added.
+
+Current asset paths remain `code/Resources/AppIconSource.png`, `AppIcon.png`, and `AppIcon.icns`. The application is now AutoMeetingRecorder 0.2.0.
+
+The earlier design record follows for provenance.
 
 2026-11-06. Original app artwork generated with the built-in image generation tool, then exported without compositional edits using macOS `sips` and `iconutil`.
 

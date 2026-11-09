@@ -24,7 +24,7 @@ public struct AIClient {
         try Task.checkCancellation()
         let expandedPrompt = try Self.expandPrompt(profile.prompt, file: file)
         if profile.interface == .transcription {
-            let boundary = "MeetingScribe-\(UUID().uuidString)"
+            let boundary = "AutoMeetingRecorder-\(UUID().uuidString)"
             var body = Data()
             func append(_ string: String) { body.append(Data(string.utf8)) }
             for (name, value) in [("model", profile.model), ("language", profile.language), ("prompt", expandedPrompt), ("response_format", profile.responseFormat)] {

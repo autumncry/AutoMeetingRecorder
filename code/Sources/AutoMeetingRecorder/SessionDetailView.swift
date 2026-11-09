@@ -36,7 +36,7 @@ struct SessionDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) { Text(current.title).font(.title.bold()).textSelection(.enabled); Text("\(current.source) · \(current.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(LocalStore.timestamp(current.duration))").foregroundStyle(.secondary).font(.callout) }
+                    VStack(alignment: .leading, spacing: 6) { Text(current.title).font(.title.bold()).textSelection(.enabled); Text("\(current.source) · \(current.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(LocalStore.timestamp(current.duration))").foregroundStyle(Brand.secondary).font(.callout) }
                     Spacer()
                     Menu {
                         ForEach(model.settings.asrProfiles) { p in Button("用 \(p.name) 转写") { model.enqueue(current.id, profile: p) } }
@@ -50,7 +50,7 @@ struct SessionDetailView: View {
                         Button { player.toggle() } label: { Image(systemName: player.playing ? "pause.fill" : "play.fill").frame(width: 22) }.buttonStyle(.bordered)
                         Text(LocalStore.timestamp(player.position)).font(.caption.monospacedDigit())
                         Slider(value: Binding(get: { player.position }, set: { player.seek($0) }), in: 0...max(player.duration, 1))
-                        Text(LocalStore.timestamp(player.duration)).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        Text(LocalStore.timestamp(player.duration)).font(.caption.monospacedDigit()).foregroundStyle(Brand.secondary)
                     }
                 }
                 if let error = current.lastError { Label(error, systemImage: "exclamationmark.triangle").font(.callout).foregroundStyle(.orange).textSelection(.enabled) }
@@ -65,12 +65,12 @@ struct SessionDetailView: View {
                 if summary.isEmpty && !editing {
                     ContentUnavailableView { Label("纪要尚未生成", systemImage: "doc.text") } description: { Text(current.transcriptVersions.isEmpty ? "先配置模型并转写这段录音。" : "转写已保存。配置总结模型后，可选择重新总结。") } actions: { SettingsLink { Text("查看模型设置") } }
                 } else {
-                    HStack { Text(editing ? "编辑 Markdown" : "Markdown 预览").font(.caption).foregroundStyle(.secondary); Spacer(); Button(editing ? "保存" : "编辑") { if editing { model.saveSummary(summary, session: current) }; editing.toggle() }.disabled(model.processingID == current.id) }.padding(.horizontal, 26).padding(.top, 12)
+                    HStack { Text(editing ? "编辑 Markdown" : "Markdown 预览").font(.caption).foregroundStyle(Brand.secondary); Spacer(); Button(editing ? "保存" : "编辑") { if editing { model.saveSummary(summary, session: current) }; editing.toggle() }.disabled(model.processingID == current.id) }.padding(.horizontal, 26).padding(.top, 12)
                     if editing { TextEditor(text: $summary).font(.body.monospaced()).padding(20) } else { MarkdownReader(text: summary) }
                 }
             } else if tab == 1 {
                 if !current.transcriptVersions.isEmpty {
-                    HStack { Text("转写版本").font(.caption).foregroundStyle(.secondary); Picker("版本", selection: Binding(get: { current.selectedTranscriptID ?? current.transcriptVersions.last!.id }, set: { id in if let v = current.transcriptVersions.first(where: { $0.id == id }) { model.selectVersion(v, session: current) } })) { ForEach(current.transcriptVersions) { v in Text("\(v.profileName) · \(v.createdAt.formatted(date: .omitted, time: .shortened))").tag(v.id) } }.labelsHidden(); Spacer() }.padding(.horizontal, 26).padding(.top, 12)
+                    HStack { Text("转写版本").font(.caption).foregroundStyle(Brand.secondary); Picker("版本", selection: Binding(get: { current.selectedTranscriptID ?? current.transcriptVersions.last!.id }, set: { id in if let v = current.transcriptVersions.first(where: { $0.id == id }) { model.selectVersion(v, session: current) } })) { ForEach(current.transcriptVersions) { v in Text("\(v.profileName) · \(v.createdAt.formatted(date: .omitted, time: .shortened))").tag(v.id) } }.labelsHidden(); Spacer() }.padding(.horizontal, 26).padding(.top, 12)
                 }
                 if let transcript {
                     ScrollView {
@@ -78,8 +78,8 @@ struct SessionDetailView: View {
                             if transcript.segments.isEmpty { Text(transcript.text).textSelection(.enabled) }
                             ForEach(transcript.segments) { segment in
                                 HStack(alignment: .top, spacing: 16) {
-                                    Button(LocalStore.timestamp(segment.start)) { player.seek(segment.start, play: true) }.buttonStyle(.plain).foregroundStyle(.teal).font(.caption.monospacedDigit())
-                                    VStack(alignment: .leading, spacing: 4) { if let speaker = segment.speaker { Text(speaker).font(.caption.bold()).foregroundStyle(.secondary) }; Text(segment.text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                                    Button(LocalStore.timestamp(segment.start)) { player.seek(segment.start, play: true) }.buttonStyle(.plain).foregroundStyle(Brand.accent).font(.caption.monospacedDigit())
+                                    VStack(alignment: .leading, spacing: 4) { if let speaker = segment.speaker { Text(speaker).font(.caption.bold()).foregroundStyle(Brand.secondary) }; Text(segment.text).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                                 }
                             }
                         }.padding(26)
@@ -93,7 +93,7 @@ struct SessionDetailView: View {
                         Text((try? model.store.directory(for: current).path) ?? "").font(.caption.monospaced()).textSelection(.enabled)
                         Button("打开会议文件夹") { model.openFolder(current) }
                         Divider()
-                        ForEach(Array(current.notes.enumerated()), id: \.offset) { _, note in Label(note, systemImage: "info.circle").foregroundStyle(.secondary) }
+                        ForEach(Array(current.notes.enumerated()), id: \.offset) { _, note in Label(note, systemImage: "info.circle").foregroundStyle(Brand.secondary) }
                     }.padding(26)
                 }
             }

@@ -8,7 +8,7 @@ Scope: `docs/spec.md`, `AppModel.swift`, `RecordingWorkflow.swift`, `ProcessingW
 
 ### 1. [P1] Revalidate an automatic start after the microphone permission await
 
-**Location:** [RecordingWorkflow.swift:11](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/RecordingWorkflow.swift:11), lines 11–20. Related: [AppModel.swift:65](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/AppModel.swift:65), lines 65–67.
+**Location:** [RecordingWorkflow.swift:11](../code/Sources/AutoMeetingRecorder/RecordingWorkflow.swift:11), lines 11–20. Related: [AppModel.swift:65](../code/Sources/AutoMeetingRecorder/AppModel.swift:65), lines 65–67.
 
 An automatic start can suspend at `requestAccess` before setting `activeRecording` or `automaticSession`. If the meeting ends while the permission prompt is open, the detector's end callback returns because no recording is active. Once the user answers the prompt, the suspended start unconditionally creates a session and starts capture; it never checks whether that detection episode still exists. Disabling automatic detection during the await has the same problem. For a previously certain candidate, the resumed session is immediately `.recording`, so the unrelated system audio it captures is eligible for automatic transcription on a later stop. The already-consumed end event will not stop it.
 
@@ -16,7 +16,7 @@ An automatic start can suspend at `requestAccess` before setting `activeRecordin
 
 ### 2. [P1] A second stop returns before finalization, allowing Quit to terminate it
 
-**Location:** [RecordingWorkflow.swift:57](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/RecordingWorkflow.swift:57), lines 57–63. Reachable caller: [MeetingScribeApp.swift:64](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/MeetingScribeApp.swift:64).
+**Location:** [RecordingWorkflow.swift:57](../code/Sources/AutoMeetingRecorder/RecordingWorkflow.swift:57), lines 57–63. Reachable caller: [AutoMeetingRecorderApp.swift:64](../code/Sources/AutoMeetingRecorder/AutoMeetingRecorderApp.swift:64).
 
 Start a stop/discard, let `capture.stop()` suspend, then quit and choose “保存并退出”. `activeRecording` remains non-nil throughout finalization, so the termination handler calls `endRecording()` again. The second call returns immediately because `isStopping` is true; the handler then replies that termination may proceed while the first call is still finalizing. The manifest update or pending-directory removal has not necessarily happened. A rejected pending recording can consequently remain on disk until a later launch. Explicit discard of a confirmed recording is worse: its durable pending marker is only written after the await at lines 65–67, so recovery can retain it as an interrupted/ready recording.
 
@@ -24,7 +24,7 @@ Start a stop/discard, let `capture.stop()` suspend, then quit and choose “保�
 
 ### 3. [P1] AX query failures and incomplete scans are converted into confirmed absence
 
-**Location:** [MeetingDetector.swift:25](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingCore/MeetingDetector.swift:25), lines 25–29; [MeetingDetector.swift:83](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingCore/MeetingDetector.swift:83), lines 83–90.
+**Location:** [MeetingDetector.swift:25](../code/Sources/MeetingCore/MeetingDetector.swift:25), lines 25–29; [MeetingDetector.swift:83](../code/Sources/MeetingCore/MeetingDetector.swift:83), lines 83–90.
 
 `attribute` turns any AX error into nil (lines 54–56), window/child failures become empty collections, and exceeding the 250 ms/500-node scan limits also leaves `inMeeting` false when the leave control was not reached. None of those outcomes means the meeting ended. If `pmset` succeeds but contains no attributable input assertion—for example, an ongoing meeting currently supported only by its AX window evidence—these failures produce `candidate = false`. After eight seconds, the detector emits `.ended` and the coordinator stops the recording. The nil-preserving presence machine only protects failures of `readActivity`, not failures of the other source used to establish presence. This violates the query-failure requirement in `docs/spec.md:6`.
 
@@ -32,7 +32,7 @@ Start a stop/discard, let `capture.stop()` suspend, then quit and choose “保�
 
 ### 4. [P2] Selecting a transcript version during processing causes conflicting persisted state
 
-**Location:** [ProcessingWorkflow.swift:149](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/ProcessingWorkflow.swift:149), lines 149–155. Related: [ProcessingWorkflow.swift:133](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/ProcessingWorkflow.swift:133), lines 133–145; enabled caller at [SessionDetailView.swift:73](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/SessionDetailView.swift:73).
+**Location:** [ProcessingWorkflow.swift:149](../code/Sources/AutoMeetingRecorder/ProcessingWorkflow.swift:149), lines 149–155. Related: [ProcessingWorkflow.swift:133](../code/Sources/AutoMeetingRecorder/ProcessingWorkflow.swift:133), lines 133–145; enabled caller at [SessionDetailView.swift:73](../code/Sources/AutoMeetingRecorder/SessionDetailView.swift:73).
 
 With versions A and B present and B selected, start summarizing B. While `summarize` is suspended, select A. `selectVersion` writes A to `transcript.md` and saves selected ID A. The processing task subsequently saves its earlier copy of the session, restoring selected ID B without restoring B's `transcript.md`. The UI/manifest and the exported Markdown now disagree; even the processing error handler overwrites the selection this way. During retranscription, `saveTranscript` also persists the new version before publishing it to `sessions`, so a version selection during the following summary request can temporarily remove that new version from the manifest; interruption in that interval leaves its files orphaned from the version list.
 
@@ -40,7 +40,7 @@ With versions A and B present and B selected, start summarizing B. While `summar
 
 ### 5. [P2] A new meeting beginning during the previous stop is permanently dropped
 
-**Location:** [AppModel.swift:61](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/AppModel.swift:61), lines 61–63. Related: [RecordingWorkflow.swift:61](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/RecordingWorkflow.swift:61), lines 61–63; [DetectionRules.swift:55](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingCore/DetectionRules.swift:55), lines 55–57.
+**Location:** [AppModel.swift:61](../code/Sources/AutoMeetingRecorder/AppModel.swift:61), lines 61–63. Related: [RecordingWorkflow.swift:61](../code/Sources/AutoMeetingRecorder/RecordingWorkflow.swift:61), lines 61–63; [DetectionRules.swift:55](../code/Sources/MeetingCore/DetectionRules.swift:55), lines 55–57.
 
 After meeting A produces `.ended`, its recording remains active while asynchronous finalization runs. If meeting B becomes stable for three seconds before that finalization finishes, the presence machine sets itself active and emits B's sole `.began`. The coordinator drops it because `activeRecording`/`isStopping` is still set. Finishing A merely calls `configureDetection`; `detector.start()` is a no-op for the already-running detector. B remains present, so no new `.began` arrives and its recording never starts. This requires finalization to overlap B's start threshold; it does not depend on an audio implementation defect.
 
@@ -48,7 +48,7 @@ After meeting A produces `.ended`, its recording remains active while asynchrono
 
 ### 6. [P2] Toggling automatic detection forgets that the current session was rejected
 
-**Location:** [MeetingDetector.swift:97](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingCore/MeetingDetector.swift:97). Caller: [AppModel.swift:99](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/AppModel.swift:99), lines 99–101.
+**Location:** [MeetingDetector.swift:97](../code/Sources/MeetingCore/MeetingDetector.swift:97). Caller: [AppModel.swift:99](../code/Sources/AutoMeetingRecorder/AppModel.swift:99), lines 99–101.
 
 Reject a pending recording while its meeting signal remains present. With detection continuously enabled, `machine.active` correctly suppresses another start. Turn automatic detection off after cleanup, then back on without leaving that meeting: `stop()` resets the entire presence machine, and the same signal produces another start after three seconds. There is no separate rejected-episode state, so the requirement “until the signal leaves” is lost across this ordinary settings transition. If AX certainty improves meanwhile, the restarted session can also be a confirmed recording rather than another pending prompt.
 
@@ -56,7 +56,7 @@ Reject a pending recording while its meeting signal remains present. With detect
 
 ### 7. [P2] Switching libraries skips recovery and leaves abandoned pending audio retained
 
-**Location:** [AppModel.swift:123](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/AppModel.swift:123). Compare startup at lines 54–55 and [AppModel.swift:108](/Users/ronny/Syncthings/ClaudeCodeOfficial/MeetingScribe/code/Sources/MeetingScribe/AppModel.swift:108), lines 108–117.
+**Location:** [AppModel.swift:123](../code/Sources/AutoMeetingRecorder/AppModel.swift:123). Compare startup at lines 54–55 and [AppModel.swift:108](../code/Sources/AutoMeetingRecorder/AppModel.swift:108), lines 108–117.
 
 Recovery runs only during initialization. Switching to a library left with `.pending`, `.recording`, or `.processing` manifests by an interrupted run calls only `reload()`. Pending audio in that library is consequently retained without a 120-second task or an active recording that can be rejected. Abandoned `.recording` entries also remain stuck with processing actions disabled. Opening the same library at app launch would clean/recover these records, so choosing it in Settings should not bypass that lifecycle step.
 
@@ -79,9 +79,9 @@ Snapshot fingerprints refreshed 2026-11-06 17:04 +08:
 
 ```text
 c142a31c1a5ec8118e7661d8705f42c81c03e78a7c1c50ebe72ea877a4c39675  docs/spec.md
-2c5736d98ed0af1b797b0f965c8561bc9376fe5a5ff943e1bb9d400f90f43d6b  code/Sources/MeetingScribe/AppModel.swift
-77e9cfb605dc8fa6749dfe51fbd31b1aa2da7168f85efb223a88abde3edd5097  code/Sources/MeetingScribe/RecordingWorkflow.swift
-83922f5789b5d6b83e8412e907131bc6e41bcda9056500dfcfb3ab5d40a8927b  code/Sources/MeetingScribe/ProcessingWorkflow.swift
+2c5736d98ed0af1b797b0f965c8561bc9376fe5a5ff943e1bb9d400f90f43d6b  code/Sources/AutoMeetingRecorder/AppModel.swift
+77e9cfb605dc8fa6749dfe51fbd31b1aa2da7168f85efb223a88abde3edd5097  code/Sources/AutoMeetingRecorder/RecordingWorkflow.swift
+83922f5789b5d6b83e8412e907131bc6e41bcda9056500dfcfb3ab5d40a8927b  code/Sources/AutoMeetingRecorder/ProcessingWorkflow.swift
 37da6a4a1cce0bdd96e19b1e892fc927952ef0c648090b58ba0e439ac7c32c66  code/Sources/MeetingCore/MeetingDetector.swift
 2f5ab5b2d36f11eb0ebdecd5b6d2a18a095409ff5aee7157f579b47aaa59c72c  code/Sources/MeetingCore/DetectionRules.swift
 555090dabc69610060f6c0f177572766d3584239f3e2cbb41ca9e44bb564165d  code/Sources/MeetingCore/LocalStore.swift
